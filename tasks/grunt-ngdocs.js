@@ -33,12 +33,14 @@ module.exports = function(grunt) {
           startPage: '/api',
           scripts: ['angular.js'],
           styles: [],
+          templates: [],
           title: pkg.title || pkg.name || '',
           html5Mode: false,
           editExample: true,
           sourceLink: true,
           editLink: true,
-          inlinePartials: false
+          inlinePartials: false,
+          copyFiles: true
         }),
         section = this.target === 'all' ? 'api' : this.target,
         setup;
@@ -60,13 +62,17 @@ module.exports = function(grunt) {
         return file;
       }
 
-      var filename = file.split('/').pop();
-      //Use path.join here because we aren't sure if options.dest has / or not
-      grunt.file.copy(file, path.join(options.dest, gruntScriptsFolder, filename));
-
-      //Return the script path: doesn't have options.dest in it, it's relative
-      //to the docs folder itself
-      return gruntScriptsFolder + '/' + filename;
+      if (options.copyFiles) {
+        var filename = file.split('/').pop();
+        //Use path.join here because we aren't sure if options.dest has / or not
+        grunt.file.copy(file, path.join(options.dest, gruntScriptsFolder, filename));
+        //Return the script path: doesn't have options.dest in it, it's relative
+        //to the docs folder itself
+        return gruntScriptsFolder + '/' + filename;
+      }
+      else {
+        return file;
+      }
     });
 
     if (options.image && !linked.test(options.image)) {
@@ -78,9 +84,14 @@ module.exports = function(grunt) {
       if (linked.test(file)) {
         return file;
       }
-      var filename = file.split('/').pop();
-      grunt.file.copy(file, path.join(options.dest, 'css', filename));
-      return 'css/' + filename;
+      if (options.copyFiles) {
+        var filename = file.split('/').pop();
+        grunt.file.copy(file, path.join(options.dest, 'css', filename));
+        return 'css/' + filename;
+      }
+      else {
+        return file;
+      }
     });
 
     setup = prepareSetup(section, options);
@@ -208,6 +219,7 @@ module.exports = function(grunt) {
         content, data = {
           scripts: options.scripts,
           styles: options.styles,
+          templates: options.templates,
           sections: _.keys(setup.sections).join('|'),
           discussions: options.discussions,
           analytics: options.analytics,
